@@ -1,14 +1,11 @@
 import 'dart:async';
-
-import 'package:dart_lesson/domain/api_client/api_client.dart';
-import 'package:dart_lesson/domain/data_providers/session_data_provider.dart';
+import 'package:dart_lesson/domain/api_client/api_client_exception.dart';
+import 'package:dart_lesson/domain/services/auth_service.dart';
 import 'package:dart_lesson/ui/navigation/main_navigation.dart';
 import 'package:flutter/material.dart';
 
-class AuthModel extends ChangeNotifier {
-  final _apiClient = ApiClient();
-  final _sessionDataProvider = SessionDataProvider();
-
+class AuthViewModel extends ChangeNotifier {
+  final _authService = AuthService();
   final loginTextController = TextEditingController();
   final passwordTextController = TextEditingController();
 
@@ -19,59 +16,53 @@ class AuthModel extends ChangeNotifier {
   bool get canStartAuth => !_isAuthProgress;
   bool get isAuthProgress => _isAuthProgress;
 
+  bool _isValid(String login, String password) =>
+      login.isNotEmpty && password.isNotEmpty;
+
+  Future<String?> _login(String login, String password) async {
+    try {
+      await _authService.login(login, password);
+    } on ApiClientException catch (e) {
+      switch (e.type) {
+        case ApiClientExceptionType.network:
+          return 'Сервер не доступен. Проверте подключение к интернету';
+        case ApiClientExceptionType.auth:
+          return 'Неправильный логин пароль!';
+        case ApiClientExceptionType.sessionExpired:
+        case ApiClientExceptionType.other:
+          return 'Произошла ошибка. Попробуйте еще раз';
+      }
+    } catch (e) {
+      return 'Неизвестная ошибка, поторите попытку';
+    }
+    return null;
+  }
+
   Future<void> auth(BuildContext context) async {
     final login = loginTextController.text;
     final password = passwordTextController.text;
 
-    if (login.isEmpty || password.isEmpty) {
-      _errorMessage = 'Заполните логин и пароль';
-      notifyListeners();
+    if (!_isValid(login, password)) {
+      _updateState('Заполните логин и пароль', false);
       return;
-    }
-    _errorMessage = null;
-    _isAuthProgress = true;
-    notifyListeners();
-    String? sessionId;
-    int? accountId;
-    try {
-      sessionId = await _apiClient.auth(
-        username: login,
-        password: password,
-      );
-      accountId = await _apiClient.getAccountInfo(sessionId);
-    } on ApiClientException catch (e) {
-      switch (e.type) {
-        case ApiClientExceptionType.network:
-          _errorMessage =
-              'Сервер не доступен. Проверте подключение к интернету';
-          break;
-        case ApiClientExceptionType.auth:
-          _errorMessage = 'Неправильный логин пароль!';
-          break;
-        case ApiClientExceptionType.sessionExpired:
-        case ApiClientExceptionType.other:
-          _errorMessage = 'Произошла ошибка. Попробуйте еще раз';
-          break;
-      }
-    }
-    _isAuthProgress = false;
-    if (_errorMessage != null) {
-      notifyListeners();
-      return;
+    } else {
+      _updateState(null, true);
     }
 
-    if (sessionId == null || accountId == null) {
-      _errorMessage = 'Неизвестная ошибка, поторите попытку';
-      notifyListeners();
+    _errorMessage = await _login(login, password);
+    if (_errorMessage == null) {
+      if (context.mounted) MainNavigation.resetNavigation(context);
+    } else {
+      _updateState(_errorMessage, false);
+    }
+  }
+
+  void _updateState(String? errorMessage, bool isAuthProgress) {
+    if (_errorMessage == errorMessage && _isAuthProgress == isAuthProgress) {
       return;
     }
-    await _sessionDataProvider.setSessionId(sessionId);
-    await _sessionDataProvider.setAccountId(accountId);
-    if (context.mounted) {
-      unawaited(
-        Navigator.of(context)
-            .pushReplacementNamed(MainNavigationRouteNames.mainScreen),
-      );
-    }
+    _errorMessage = errorMessage;
+    _isAuthProgress = isAuthProgress;
+    notifyListeners();
   }
 }
