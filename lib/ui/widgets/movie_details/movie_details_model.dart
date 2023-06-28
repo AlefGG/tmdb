@@ -1,3 +1,4 @@
+import 'package:dart_lesson/configuration/configuration.dart';
 import 'package:dart_lesson/domain/api_client/account_api_client.dart';
 import 'package:dart_lesson/domain/api_client/api_client_exception.dart';
 import 'package:dart_lesson/domain/api_client/movie_api_client.dart';
@@ -36,10 +37,12 @@ class MovieDetailsModel extends ChangeNotifier {
 
   Future<void> loadDetails() async {
     try {
-      _movieDetails = await _movieApiClient.movieDetails(movieId, _locale);
+      _movieDetails = await _movieApiClient.movieDetails(
+          movieId, _locale, Configuration.apiKey);
       final sessionId = await _sessionDataProvider.getSessionId();
       if (sessionId != null) {
-        _isFavorite = await _movieApiClient.isFavorite(movieId, sessionId);
+        _isFavorite = await _movieApiClient.isFavorite(
+            movieId, sessionId, Configuration.apiKey);
       }
       notifyListeners();
     } on ApiClientException catch (e) {
