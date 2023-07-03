@@ -1,5 +1,5 @@
-import 'package:dart_lesson/domain/data_providers/session_data_provider.dart';
 import 'package:dart_lesson/domain/factories/screen_factory.dart';
+import 'package:dart_lesson/ui/widgets/main_screen/main_screen_model.dart';
 import 'package:flutter/material.dart';
 
 class MainScreenWidget extends StatefulWidget {
@@ -12,6 +12,7 @@ class MainScreenWidget extends StatefulWidget {
 class MainScreenWidgetState extends State<MainScreenWidget> {
   int _selectedTab = 0;
   final _screenFactory = ScreenFactory();
+  final model = MainScreenModel();
 
   void onSelectTab(int index) {
     if (_selectedTab == index) return;
@@ -27,11 +28,7 @@ class MainScreenWidgetState extends State<MainScreenWidget> {
         title: const Text('TMDB'),
         actions: [
           IconButton(
-            onPressed: () => SessionDataProvider().setSessionId(null),
-            icon: const Icon(Icons.search),
-          ),
-          IconButton(
-            onPressed: () => SessionDataProvider().setSessionId(null),
+            onPressed: () => model.logout(context),
             icon: const Icon(Icons.exit_to_app),
           )
         ],

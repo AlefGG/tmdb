@@ -1,4 +1,3 @@
-import 'package:dart_lesson/configuration/configuration.dart';
 import 'package:dart_lesson/domain/api_client/network_client.dart';
 import 'package:dart_lesson/domain/entity/popular_movie_response.dart';
 import 'package:dart_lesson/domain/entity/movie_details.dart';

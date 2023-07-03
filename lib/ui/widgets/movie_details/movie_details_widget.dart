@@ -1,9 +1,8 @@
-import 'package:dart_lesson/Library/Widgets/Inherited/provider.dart';
-import 'package:dart_lesson/ui/widgets/app/my_app_model.dart';
 import 'package:dart_lesson/ui/widgets/movie_details/movie_details_main_info_widget.dart';
 import 'package:dart_lesson/ui/widgets/movie_details/movie_details_main_screen_cast_widget.dart';
 import 'package:dart_lesson/ui/widgets/movie_details/movie_details_model.dart';
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 
 class MovieDetailsWidget extends StatefulWidget {
   const MovieDetailsWidget({Key? key}) : super(key: key);
@@ -14,17 +13,11 @@ class MovieDetailsWidget extends StatefulWidget {
 
 class MovieDetailsWidgetState extends State<MovieDetailsWidget> {
   @override
-  void initState() {
-    super.initState();
-    final model = NotifierProvider.read<MovieDetailsModel>(context);
-    final appModel = Provider.read<MyAppModel>(context);
-    model?.onSessionExpired = () => appModel?.resetSession(context);
-  }
-
-  @override
   void didChangeDependencies() {
     super.didChangeDependencies();
-    NotifierProvider.read<MovieDetailsModel>(context)?.setupLocale(context);
+    Future.microtask(
+      () => context.read<MovieDetailsModel>().setupLocale(context),
+    );
   }
 
   @override
@@ -46,8 +39,8 @@ class _TitleWidget extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final model = NotifierProvider.watch<MovieDetailsModel>(context);
-    return Text(model?.movieDetails?.title ?? 'Загрузка...');
+    final title = context.select((MovieDetailsModel model) => model.data.title);
+    return Text(title);
   }
 }
 
@@ -56,9 +49,9 @@ class _BodyWidget extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final model = NotifierProvider.watch<MovieDetailsModel>(context);
-    final movieDetails = model?.movieDetails;
-    if (movieDetails == null) {
+    final isLoading =
+        context.select((MovieDetailsModel model) => model.data.isLoading);
+    if (isLoading) {
       return const Center(child: CircularProgressIndicator());
     }
     return ListView(

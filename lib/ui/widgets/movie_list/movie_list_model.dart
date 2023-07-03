@@ -1,13 +1,9 @@
-// ignore_for_file: public_member_api_docs, sort_constructors_first
 import 'dart:async';
 import 'package:dart_lesson/Library/paginator.dart';
-import 'package:dart_lesson/configuration/configuration.dart';
 import 'package:dart_lesson/domain/services/movie_service.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
-import 'package:dart_lesson/domain/api_client/movie_api_client.dart';
 import 'package:dart_lesson/domain/entity/movie.dart';
-import 'package:dart_lesson/domain/entity/popular_movie_response.dart';
 import 'package:dart_lesson/ui/navigation/main_navigation.dart';
 
 class MovieListRowData {
@@ -29,7 +25,6 @@ class MovieListViewModel extends ChangeNotifier {
   final _movieService = MovieService();
   late final Paginator<Movie> _popularMoviePaginator;
   late final Paginator<Movie> _searchMoviePaginator;
-  final _movieApiClient = MovieApiClient();
   Timer? searchDeboubce;
   String _locale = '';
 
