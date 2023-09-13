@@ -52,6 +52,8 @@ class MovieListState {
   final String searchQuery;
 
   bool get isSearchMode => searchQuery.isNotEmpty;
+  List<Movie> get movies =>
+      isSearchMode ? searchMovieContainer.movies : popularMovieContainer.movies;
 
   const MovieListState.initial()
       : popularMovieContainer = const MovieListContainer.initial(),
